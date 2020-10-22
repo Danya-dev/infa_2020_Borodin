@@ -155,3 +155,29 @@ while not finished:
     Points_Score(score)
     pygame.display.update()
     screen.fill(BLACK)
+inp = open('HighScore.txt', 'r')
+outp = open('HighScore.txt', 'a')
+STR = inp.readlines()
+print(STR)
+LastScore = ''
+for i in STR[len(STR)-1]:
+    if not(i == ' '):
+        LastScore += i
+    else:
+        break
+if score > int(LastScore) :
+    print('High Score!')
+    print(' add your name:')
+    name = input()
+    print( score, ' : ', name, file = outp)
+inp.close()
+outp.close()
+
+pygame.quit()
+
+    
+    
+    
+    
+    
+    
