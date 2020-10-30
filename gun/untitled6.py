@@ -68,6 +68,15 @@ class Target():
         if color == None:
             color = rand_color()
         self.color = color
+        
+    def check_collision(self, ball):
+        
+        dist = sum([(self.coord[i] - ball.coord[i])**2 for i in range(2)])**0.5
+        min_dist = self.rad + ball.rad
+        return dist <= min_dist
+    def draw(self, screen):
+        
+        pg.draw.circle(screen, self.color, self.coord, self.rad)
 
 
 
