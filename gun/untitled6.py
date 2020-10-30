@@ -4,7 +4,17 @@ from pygame.draw import *
 pygame.init()
 
 FPS = 200
-screen = pygame.display.set_mode((1200, 600)) 
+screen = pygame.display.set_mode((1200, 600))
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+SCREEN_SIZE = (800, 600) 
+
+
+def rand_color():
+    return (randint(0, 255), randint(0, 255), randint(0, 255))
 
 class Ball():
      def __init__(self, coord, vel, rad=20, color=None):
@@ -16,6 +26,34 @@ class Ball():
         self.color = color
         self.rad = rad
         self.is_alive = True
+        
+        def check_corners(self, refl_ort=0.8, refl_par=0.9):
+        
+        for i in range(2):
+            if self.coord[i] < self.rad:
+                self.coord[i] = self.rad
+                self.vel[i] = -int(self.vel[i] * refl_ort)
+                self.vel[1-i] = int(self.vel[1-i] * refl_par)
+            elif self.coord[i] > SCREEN_SIZE[i] - self.rad:
+                self.coord[i] = SCREEN_SIZE[i] - self.rad
+                self.vel[i] = -int(self.vel[i] * refl_ort)
+                self.vel[1-i] = int(self.vel[1-i] * refl_par)
+                 
+        def move(self, time=1, grav=0):
+        
+         self.vel[1] += grav
+        for i in range(2):
+            self.coord[i] += time * self.vel[i]
+        self.check_corners()
+        if self.vel[0]**2 + self.vel[1]**2 < 2**2 and self.coord[1] > SCREEN_SIZE[1] - 2*self.rad:
+            self.is_alive = False
+         
+        def draw(self, screen):
+       
+        pg.draw.circle(screen, self.color, self.coord, self.rad)
+        
+        
+
   
         
 class Target():
