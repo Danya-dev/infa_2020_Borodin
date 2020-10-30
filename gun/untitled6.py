@@ -91,7 +91,47 @@ class gun():
         self.color = color
         self.active = False
         self.pow = min_pow
+        
+    def activate(self):
+        
+        self.active = True
+        
+    def gain(self, inc=2):
+        
+        if self.active and self.pow < self.max_pow:
+            self.pow += inc
 
+    def strike(self):
+        
+        vel = self.pow
+        angle = self.angle
+        ball = Ball(list(self.coord), [int(vel*np.cos(angle)), int(vel*np.sin(angle))])
+        self.pow = self.min_pow
+        self.active = False
+        return ball
+    
+    def set_angle(self, target_pos):
+        
+        self.angle = np.arctan2(target_pos[1] - self.coord[1], target_pos[0] - self.coord[0])
+        
+    def move(self, inc):
+        
+        if (self.coord[1] > 30 or inc > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc < 0):
+            self.coord[1] += inc
+            
+            
+    def draw(self, screen):
+       
+        gun_shape = []
+        vec_1 = np.array([int(5*np.cos(self.angle - np.pi/2)), int(5*np.sin(self.angle - np.pi/2))])
+        vec_2 = np.array([int(self.pow*np.cos(self.angle)), int(self.pow*np.sin(self.angle))])
+        gun_pos = np.array(self.coord)
+        gun_shape.append((gun_pos + vec_1).tolist())
+        gun_shape.append((gun_pos + vec_1 + vec_2).tolist())
+        gun_shape.append((gun_pos + vec_2 - vec_1).tolist())
+        gun_shape.append((gun_pos - vec_1).tolist())
+        pg.draw.polygon(screen, self.color, gun_shape)
+            
 class Table():
     def __init__(self, t_destr=0, b_used=0):
         self.t_destr = t_destr
