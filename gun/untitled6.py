@@ -1,7 +1,9 @@
 import numpy as np
 import pygame as pg
 from random import randint, gauss
-
+import math
+      
+        
 pg.init()
 pg.font.init()
 
@@ -31,6 +33,7 @@ class Ball():
         self.color = color
         self.rad = rad
         self.is_alive = True
+
 
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
         '''
@@ -96,8 +99,27 @@ class Target():
         Draws the target on the screen
         '''
         pg.draw.circle(screen, self.color, self.coord, self.rad)
-
-
+class coord():
+    def __init__(self, x, y, z):
+        coord.x = x
+        coord.y = y
+        coord.z = z
+class jumper():
+    
+    def __init__(self):
+        self.A = (randint(0, 3*SCREEN_SIZE[0]//4),
+                  randint((SCREEN_SIZE[1]//4), SCREEN_SIZE[1]*3/4))
+        self.B = (self.A[0] + randint(-60,60), self.A[1] + randint(-60,60) )
+        self.k = (self.A[1] - self.B[1]) / (self.A[0] - self.B[0])
+        
+    def draw(self, screen):
+        sqr = int(10/math.sqrt(2))
+        pg.draw.polygon(screen,(0,255,0),(self.A,self.B,
+                                         (self.B[0]-sqr,self.B[1]+sqr),                                         
+                                         (self.A[0]-sqr,self.A[1]+sqr)),3)
+                                          
+                                         
+        
 class Gun():
     '''
     Gun class. Manages it's renderring, movement and striking.
@@ -195,20 +217,28 @@ class Manager():
     Class that manages events' handling, ball's motion and collision, target creation, etc.
     '''
     def __init__(self, n_targets=1):
+        self.jumpers = []
         self.balls = []
         self.gun = Gun()
         self.targets = []
         self.score_t = ScoreTable()
         self.n_targets = n_targets
         self.new_mission()
+        
 
     def new_mission(self):
         '''
         Adds new targets.
         '''
+        self.jumpers = []
         for i in range(self.n_targets):
             self.targets.append(Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())), 
                 30 - max(0, self.score_t.score()))))
+        jumper_number = randint(0,3)
+        for i in range(jumper_number):
+            self.jumpers.append(jumper())
+        
+            
 
     def process(self, events, screen):
         '''
@@ -222,7 +252,9 @@ class Manager():
         
         self.move()
         self.collide()
+        self.jcollision()
         self.draw(screen)
+        
 
         if len(self.targets) == 0 and len(self.balls) == 0:
             self.new_mission()
@@ -259,6 +291,8 @@ class Manager():
             ball.draw(screen)
         for target in self.targets:
             target.draw(screen)
+        for jumper in self.jumpers:
+            jumper.draw(screen)
         self.gun.draw(screen)
         self.score_t.draw(screen)
 
@@ -290,6 +324,31 @@ class Manager():
         for j in reversed(targets_c):
             self.score_t.t_destr += 1
             self.targets.pop(j)
+            
+    def jcollision(self):
+        for jumper in self.jumpers :
+            for i, ball in enumerate(self.balls):
+                mod = abs((jumper.k * ball.coord[0] - ball.coord[1] + jumper.A[1] - 
+                      jumper.k * jumper.A[0])/math.sqrt(jumper.k**2 + 1))
+                modbo = mod <= 20
+                Aboo  = ((ball.coord[0] - jumper.A[0]) * (jumper.B[0] - jumper.A[0]) +
+                        (ball.coord[1] - jumper.A[1]) * (jumper.B[1] - jumper.A[1])) >= 0 
+                Biboo = ((ball.coord[0] - jumper.B[0]) * (jumper.A[0] - jumper.B[0]) +
+                        (ball.coord[1] - jumper.B[1]) * (jumper.A[1] - jumper.B[1])) >= 0
+                if modbo and Aboo and Biboo  :
+                    self.strike(ball, jumper)
+                    
+    def strike(self, ball, jumper):
+        velN = (ball.vel[0]*jumper.k, ball.vel[1]*(-1))
+        if velN[0] + velN[1] < 0 :
+            ball.vel[0] += int(velN[0]*2)
+            ball.vel[1] += int(velN[1]*2)
+        else :
+            ball.vel[0] -= int(velN[0]*2)
+            ball.vel[1] -= int(velN[1]*2)
+        ball.coord[0] += ball.vel[0]*10
+        ball.coord[1] += ball.vel[1]*10
+        
 
 
 screen = pg.display.set_mode(SCREEN_SIZE)
@@ -301,7 +360,7 @@ clock = pg.time.Clock()
 mgr = Manager(n_targets=3)
 
 while not done:
-    clock.tick(15)
+    clock.tick(30)
     screen.fill(BLACK)
 
     done = mgr.process(pg.event.get(), screen)
