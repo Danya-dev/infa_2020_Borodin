@@ -107,9 +107,9 @@ class coord():
 class jumper():
     
     def __init__(self):
-        self.A = (randint(0, 3*SCREEN_SIZE[0]//4),
+        self.A = (randint(SCREEN_SIZE[0]//4, 3*SCREEN_SIZE[0]//4),
                   randint((SCREEN_SIZE[1]//4), SCREEN_SIZE[1]*3/4))
-        self.B = (self.A[0] + randint(-60,60), self.A[1] + randint(-60,60) )
+        self.B = (self.A[0] + randint(10,60), self.A[1] + randint(10,60) )
         self.k = (self.A[1] - self.B[1]) / (self.A[0] - self.B[0])
         
     def draw(self, screen):
@@ -339,15 +339,16 @@ class Manager():
                     self.strike(ball, jumper)
                     
     def strike(self, ball, jumper):
-        velN = (ball.vel[0]*jumper.k, ball.vel[1]*(-1))
+        velN = (ball.vel[0]*jumper.k / math.sqrt(jumper.k**2 + 1),
+                ball.vel[1]*(-1) / math.sqrt(jumper.k**2 + 1))
         if velN[0] + velN[1] < 0 :
             ball.vel[0] += int(velN[0]*2)
             ball.vel[1] += int(velN[1]*2)
         else :
             ball.vel[0] -= int(velN[0]*2)
             ball.vel[1] -= int(velN[1]*2)
-        ball.coord[0] += ball.vel[0]*10
-        ball.coord[1] += ball.vel[1]*10
+        ball.coord[0] += ball.vel[0] * 3
+        ball.coord[1] += ball.vel[1] * 3
         
 
 
